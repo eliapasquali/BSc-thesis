@@ -1,0 +1,145 @@
+% \omiss produces '[...]'
+\newcommand{\omissis}{[\dots\negthinspace]}
+
+% Itemize symbols
+% see: https://tex.stackexchange.com/a/62497
+% \renewcommand{\labelitemi}{$\bullet$}
+% \renewcommand{\labelitemii}{$\cdot$}
+% \renewcommand{\labelitemiii}{$\diamond$}
+% \renewcommand{\labelitemiv}{$\ast$}
+
+
+\let\Chaptermark\chaptermark
+% \Chaptername gives current chapter name
+\def\chaptermark#1{\def\Chaptername{#1}\Chaptermark{#1}}
+\makeatletter
+% \currentname gives the current section name
+\newcommand*{\currentname}{\@currentlabelname}
+\makeatother
+
+% Uncomment the following line for a different header/footer style
+% \pagestyle{fancy} \setlength{\headheight}{14.5pt}
+\fancyhead[L]{\fontsize{12}{14.5} \selectfont \thechapter. \Chaptername}
+\fancyhead[R]{\fontsize{12}{14.5} \selectfont \currentname}
+% Page number always in footer
+\cfoot{\thepage}
+
+
+% Custom hyphenation rules
+\hyphenation {
+    e-sem-pio
+    ex-am-ple
+}
+
+% Images path
+\graphicspath{{images/}}
+
+% Page format settings
+% see: http://wwwcdf.pd.infn.it/AppuntiLinux/a2547.htm
+\setlength{\parindent}{14pt}    % first row indentation
+\setlength{\parskip}{0pt}       % paragraphs spacing
+
+
+% Load variables
+\input{config/variables}
+
+\bibliography{appendix/bibliography}
+
+\defbibheading{bibliography} {
+    \cleardoublepage
+    \phantomsection
+    \addcontentsline{toc}{chapter}{\bibname}
+    \chapter*{\bibname\markboth{\bibname}{\bibname}}
+}
+
+% Spacing between entries
+\setlength\bibitemsep{1.5\itemsep}
+
+\DeclareBibliographyCategory{opere}
+\DeclareBibliographyCategory{web}
+
+\addtocategory{opere}{womak:lean-thinking}
+\addtocategory{web}{site:agile-manifesto}
+
+\defbibheading{opere}{\section*{Riferimenti bibliografici}}
+\defbibheading{web}{\section*{Siti Web consultati}}
+
+
+\captionsetup{
+    tableposition=top,
+    figureposition=bottom,
+    font=small,
+    format=hang,
+    labelfont=bf
+}
+
+\hypersetup{
+    %hyperfootnotes=false,
+    %pdfpagelabels,
+    colorlinks=true,
+    linktocpage=true,
+    pdfstartpage=1,
+    pdfstartview=,
+    breaklinks=true,
+    pdfpagemode=UseNone,
+    pageanchor=true,
+    pdfpagemode=UseOutlines,
+    plainpages=false,
+    bookmarksnumbered,
+    bookmarksopen=true,
+    bookmarksopenlevel=1,
+    hypertexnames=true,
+    pdfhighlight=/O,
+    %nesting=true,
+    %frenchlinks,
+    urlcolor=webbrown,
+    linkcolor=RoyalBlue,
+    citecolor=webgreen
+    %pagecolor=RoyalBlue,
+}
+
+% Delete all links and show them in black
+\if \isprintable 1
+    \hypersetup{draft}
+\fi
+
+% Listings setup
+\lstset{
+    language=[LaTeX]Tex,%C++,
+    keywordstyle=\color{RoyalBlue}, %\bfseries,
+    basicstyle=\small\ttfamily,
+    %identifierstyle=\color{NavyBlue},
+    commentstyle=\color{Green}\ttfamily,
+    stringstyle=\rmfamily,
+    numbers=none, %left,%
+    numberstyle=\scriptsize, %\tiny
+    stepnumber=5,
+    numbersep=8pt,
+    showstringspaces=false,
+    breaklines=true,
+    frameround=ftff,
+    frame=single
+}
+
+\definecolor{webgreen}{rgb}{0,.5,0}
+\definecolor{webbrown}{rgb}{.6,0,0}
+
+\newcommand{\sectionname}{sezione}
+\addto\captionsitalian{\renewcommand{\figurename}{Figura}
+                       \renewcommand{\tablename}{Tabella}}
+
+\newcommand{\glsfirstoccur}{\ap{{[g]}}}
+
+\newcommand{\intro}[1]{\emph{\textsf{#1}}}
+
+% Namespace description environment
+\newenvironment{namespacedesc}{
+    \vspace{10pt}
+    \par \noindent  % start new paragraph
+    \begin{description}
+}{
+    \end{description}
+    \medskip
+}
+
+\newcommand{\classdesc}[2]{\item[\textbf{#1:}] #2}

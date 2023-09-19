@@ -1,0 +1,25 @@
+\chapter{Attacchi e mitigazioni}
+\label{appendix:security}
+
+\section{Slowloris DDoS Attack}
+\label{atk:slowloris}
+
+Un attacco che è possibile attuare sfruttando delle richieste HTTP è detto \emph{Slowloris DDos Attack}\cite{site:cloudflare-slowloris}. Questo agisce riempiendo la vittima di richieste di apertura di connessioni HTTP, che vengono mantenute aperte per il tempo massimo possibile per poi mandare una particolare richiesta per mantenerla attiva facendo credere di avere semplicemente una connessione lenta. Utilizzando più richieste in contemporanea è possibile saturare la vittima, che non sarà più in grado di accettare ed aprire nuove connessioni, risultando in un \emph{Denial of Service}. Questo attacco è particolarmente efficace perché non richiede molte risorse.
+
+\section{DNS Amplification Attack}
+\label{atk:dns-amplification}
+
+Gli attacchi di tipo \emph{DNS amplification}\cite{site:cloudflare-dns-amplification} sfruttano il fatto che il protocollo DNS utilizza UDP per le sue comunicazioni. Creando richieste con DNS che contengono come mittente l'indirizzo IP della vittima che vogliamo attaccare, il server DNS gli risponderà senza effettuare controlli. Se le richieste sono effettuate in massa da più macchine è possibile andare a saturare la banda della vittima, incrementando di svariate volte il volume di traffico generato dall'attaccante a discapito di un maggiore utilizzo di un server DNS pubblico, utilizzato inutilmente, ottenendo un attacco di tipo \emph{Denial of Service} distribuito (\emph{DDoS}).
+
+\section{DNS Sinkhole - Mitigation Strategy}
+\label{atk:dns-sinkhole}
+
+Una tecnica di difesa invece da richieste DNS malevole è quella di utilizzare un \emph{DNS Sinkhole}\cite{site:paloalto-dns-sinkhole}. Questa tecnica consiste nel configurare il firewall in modo da rispondere a particolari richieste che consideriamo malevole con con un indirizzo IP fittizio. Questo porterà l'attaccante a contattare direttamente questo falso IP, senza però riuscire a collegarsi davvero, rallentandolo e permettendolo di identificarlo anche se sta usando un \emph{server} DNS interno. Questa tecnica è molto efficace perché non richiede molte risorse e può essere facilmente implementata.
+
+\section{Domain Generation Algorithm}
+\label{atk:dga}
+
+Un \emph{Domain Generation Algorithm} (DGA) è un algoritmo utilizzato per generare domini che possono essere utilizzati per comunicare con i server di controllo. Questo permette di rendere più difficile la rilevazione e la chiusura dei server di controllo, in quanto non è possibile bloccare un singolo dominio, ma bisogna bloccare tutti quelli generati dall'algoritmo. Questo tipo di algoritmo è stato alla base delle comunicazioni ai propri server di \emph{Command and Control} (C\&C) nei malware \emph{Conficker}\cite{site:paloalto-dga} nel 2008 o \emph{QSnatch}\cite{site:qsnatch-dga} nel 2020.
+
+Un metodo per utilizzare un DGA è quello di generare un dominio a partire da una data come \emph{seed}, in modo che l'attaccante possa prevedere il dominio che verrà generato in futuro, in modo da poterlo registrare in anticipo, dato spesso domini appena registrati vengono considerati inaffidabili e quindi bloccati.
+

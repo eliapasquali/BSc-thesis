@@ -1,0 +1,211 @@
+\chapter{Tecnologie utilizzate}
+\label{cap:tecnologie}
+
+\intro{Di seguito una descrizione dettagliata di come mi sono approcciato allo stage, dalla formazione all'implementazione degli obiettivi richiesti.}
+
+\section{Studio degli ambiti di interesse e del dominio tecnologico}
+
+Durante la prima settimana dello stage, affiancato da Mirco, ho ripassato e approfondito tutti i concetti legati al mondo delle reti, dalle basi del protocollo TCP/IP, del funzionamento e delle topologie di rete a livello fisico, fino ad arrivare ai protocolli di livello applicativo, di uso comune come HTTP, FTP e SSH (e tutte le loro controparti sicure con SSL) e nuove proposte come QUIC.
+
+Sono stati discussi i concetti di indirizzamento IP, di \emph{subnetting} e di routing, sono stati approfonditi i concetti di NAT e di \emph{firewall}, e tutto ciò che concerne la sicurezza informatica e la protezione dei dati.
+
+Dal lato pratico sono stati utilizzati strumenti come \emph{Wireshark}, per l'analisi del traffico di rete, e \emph{Nmap}, per la scansione delle porte di un \emph{host}. Per prendere confidenza con le configurazioni degli apparati di rete utilizzati dall'azienda mi sono stati messi a disposizione alcuni strumenti tra cui un \emph{Mikrotik RouterBoard}, un \emph{Watchguard Firebox} e uno \emph{switch HP ProCurve}, dove avevo accesso completo e libertà di gestione.
+
+Con questi ho potuto sperimentare le configurazioni di base di un \emph{firewall}, di un \emph{router} e di uno \emph{switch}, e ho potuto sperimentare la configurazione di VLAN e di VPN, utilizzando vari portatili per simulare degli \emph{host} e le loro interazioni in rete.
+
+I vari attacchi e le mitigazioni discusse in questo periodo verranno approfondite nella \autoref{appendix:security} per non appesantire il flusso della relazione.
+
+\subsection{Protocolli analizzati}
+
+\subsubsection{IP}
+
+Il protocollo IP è stato il primo protocollo analizzato. Sono stati ripassati i concetti di indirizzamento IP, di \emph{subnetting} e di \emph{routing}. Per poter lavorare efficacemente sui \emph{log} e per riconoscere velocemente le sorgenti e le destinazioni delle trasmissioni che il sistema rilevava è stato necessario ripassare le classi IP e le categorie riservate
+
+\subsubsection{Subnetting}
+
+Lavorando su una rete complessa come quella di un'azienda è necessario suddividere la rete in sotto reti, per poter gestire in modo più semplice le risorse e per poter applicare delle regole di sicurezza più specifiche, limitare il traffico \emph{broadcast} nella rete e gestire in modo puntuale la visibilità delle risorse. Sfruttando la rete interna come esempio mi è stato spiegato come andare a definire regole di accesso e permessi per i vari reparti.
+
+\subsubsection{NAT}
+
+Il NAT (\emph{Network Address Translation}) è il protocollo che permette di modificare gli indirizzi, sia sorgente che destinazione, di una connessione durante il transito su un apparato. Solitamente questo avviene nel \emph{firewall}, che sfrutta le \emph{porte} per ricordare queste modifiche. Proprio per questo utilizzo "improprio" dello strumento delle porte, questa metodologia viene considerata come il "livello 3.5" dello \emph{stack ISO/OSI}. Questo protocollo ha tre tipologie di configurazione:
+
+\begin{itemize}
+    \item \emph{Dynamic NAT (DNAT)}: permette di mappare un indirizzo IP privato ad un indirizzo IP pubblico, in modo che tutti i pacchetti che arrivano all'indirizzo pubblico vengano instradati all'indirizzo privato. Questo tipo di configurazione è utile quando si hanno più \emph{host} che devono accedere ad Internet, ma non è necessario che siano raggiungibili dall'esterno.
+    \item \emph{Static NAT (SNAT)}: viene utilizzato per dare accesso ad esterni alla rete interna. Detto anche \emph{port-forwarding} perché agisce con un meccanismo che alla ricezione di un pacchetto dall'esterno instrada quest'ultimo verso una coppia \emph{IP:PORT} dietro al \emph{firewall}.
+    \item \emph{NAT Loopback (UNAT)}: permette al \emph{router} di instradare internamente le richieste da un dispositivo sulla rete locale che contatta un altro tramite l'IP esterno, senza dover uscire dalla rete e rientrare.
+\end{itemize}
+
+\subsubsection{Domain Controller e Active Directory}
+
+In Wintech tutti utilizzano sistemi \emph{Windows}. Questo permette di avere un'infrastruttura di rete molto semplice da gestire, grazie all'utilizzo di \emph{Active Directory} e di \emph{Domain Controller}. Questi strumenti permettono di gestire in modo centralizzato tutti gli utenti e i loro permessi, e di applicare delle regole di sicurezza a livello di rete, come ad esempio la richiesta di autenticazione per accedere a una risorsa condivisa o ad un apparato di rete, come \emph{firewall} o \emph{switch}.
+
+Il mio account, ad esempio, era stato configurato in modo da avere tutti i permessi di amministratore locale sulla mia macchina, ma con l'accesso ai soli file e cartelle comuni a tutti i dipendenti e quelle legate al \emph{team} di rete.
+
+\subsubsection{RADIUS e 802.1X Authentication}
+
+Il portatile che mi è stato fornito disponeva sia di una scheda di rete \emph{wireless} che di una porta \emph{Ethernet}. La rete aziendale è suddivisa in varie VLAN, tutte protette da autenticazione. Sfruttando il fatto che tutti i dispositivi sono già autenticati tramite \emph{Active Directory} e grazie all'utilizzo di un server che supporta il protocollo \emph{RADIUS}, è possibile autenticare utenti e dispositivi sfruttando un certificato che il dominio fornisce, permettendogli di accedere alle reti di cui hanno il diritto di utilizzo dopo una validazione di quest'ultimo.
+
+\subsubsection{HTTP e HTTPS}
+
+Vista la presenza di molti applicativi interni e di clienti con interfacce \emph{web} è stato utile ripassare la struttura del protocollo HTTP. A volte, essendo questi servizi offerti solo ai dipendenti che operano in un'infrastruttura di rete interna e controllata a monte, non viene utilizzata la versione sicura, rendendo quindi il contenuto delle richieste e delle risposte in chiaro.
+
+Lo strumento di NDR che sono andato ad utilizzare aveva le proprie sonde inserite all'interno di questa rete e mi ha permesso di capire quanto, in una situazione del genere, per un attaccante con accesso locale sia facile intercettare e manipolare il traffico di rete.
+
+Uno degli attacchi analizzati legati al protocollo HTTP è descritto nella \autoref{atk:slowloris}.
+
+\subsubsection{FTP, SFTP e FTPS}
+
+Per quanto riguarda i protocolli di trasferimento di \emph{file}, ho potuto approfondire le differenze tra FTP, SFTP e FTPS. L'ultimo protocollo è stato rilevato casualmente dal sistema, essendo poco utilizzato rispetto alla sua altra versione sicura SFTP.
+
+\begin{itemize}
+    \item \emph{FTP}
+        \begin{itemize}
+            \item Non supporta la cifratura
+            \item Autenticazione con \emph{username} e \emph{password} in chiaro
+            \item Non supporta i certificati
+            \item Nei \emph{firewall} è necessario aprire più porte per gestire la versione attiva e passiva, dove vengono utilizzati più canali per la connessione e il passaggio dei dati
+        \end{itemize}
+    \item \emph{FTPS}
+        \begin{itemize}
+            \item Sfrutta TLS/SSL per rendere sicuro il trasferimento. Tuttavia è possibile che sià definita una strategia di \emph{fallback} alla sua versione non sicura, rendendo il trasferimento in chiaro
+            \item Utilizzando SSL/TLS è possibile utilizzare certificati X.509 per l'autenticazione del \emph{server} e del \emph{client}
+            \item Per sua natura, essendo un protocollo che utilizza più canali per la connessione e il passaggio dei dati, è necessario aprire più porte nei \emph{firewall}.
+            \item Operando su più canali c'è una piccola probabilità che FTPS sia più veloce di SFTP. Tuttavia la differenza è minima e spesso trascurabile.
+        \end{itemize}
+    \item \emph{SFTP}
+        \begin{itemize}
+            \item Il trasferimento avviene all'interno di un tunnel SSH. Se questo non viene instaurato non c'è possibilità di \emph{fallback} alla versione non sicura.
+            \item L'autenticazione avviene tramite chiavi SSH, spostando il problema della sicurezza sulle chiavi stesse.
+            \item Lavorando all'interno di un tunnel SSH è necessario aprire una sola porta nei \emph{firewall}, rendendo più semplice la configurazione.
+        \end{itemize}
+\end{itemize}
+
+\subsubsection{DNS}
+
+Il protocollo DNS è stato ripassato per poter capire come funzionano i domini e come vengono risolti gli indirizzi IP. Questo mi ha permesso di analizzare poi degli attacchi come quello di \emph{DNS Amplification} (\autoref{atk:dns-amplification}) e tecniche di mitigazione offerte dai \emph{firewall} come la \emph{DNS Sinkhole} (\autoref{atk:dns-sinkhole}). Tramite il \emph{Domain Name System}, vengono convertiti \emph{hostname} del tipo \url{example.com} nell'indirizzo IP corrispondente, dove andare poi a collegarsi.
+
+\subsubsection{SNMP e LLDP}
+
+SNMP (\emph{Simple Network Management Protocol}) e LLDP (\emph{Link Layer Discovery Protocol}) sono due protocolli che permettono di gestire e monitorare i dispositivi di rete. Il primo permette di raccogliere informazioni sullo stato dei dispositivi, mentre il secondo permette di scoprire i servizi disponibili in una rete senza ricorrere a DHCP o DNS.
+
+Il primo è stato utilizzato insieme al software di monitoraggio \emph{PRTG Monitor} per raccogliere informazioni sullo stato dei dispositivi di rete. Il secondo, essendo attivo di default su \emph{Windows 11} è stato utilizzato nella rete interna dato che i dispositivi che utilizzano questo sistema operativo in azienda sono la maggioranza.
+
+Entrambi i protocolli non sono sicuri per natura, anche se in realtà SNMPv3 supporta strumenti di sicurezza. Sono stati utilizzate le versioni insicure per mantenere la maggiore compatibilità possibile. 
+
+Il sistema NDR quindi segnalava molti dispositivi che utilizzavano questi protocolli, in quanto potenzialmente vulnerabili, nonostante il comportamento fosse quello effettivamente atteso, e sono state quindi create delle \emph{whitelist} per evitare falsi positivi.
+
+\subsubsection{Redfish}
+
+\emph{Redfish} è uno standard che raccoglie una serie di specifiche che permettono di gestire in modo i dispositivi di rete sfruttando interfacce \emph{RESTful}. Durante lo stage si è provato ad integrare in alcuni sensori di monitoraggio ma non è stato possibile per mancanza di compatibilità con i dispositivi utilizzati. 
+
+\subsubsection{QUIC}
+
+Riscontrato tramite l'utilizzo di \emph{Wireshark}, mi sono documentato sul protocollo QUIC\cite{site:cloudflare-quic}, che è stato sviluppato da \emph{Google} per migliorare le prestazioni di HTTP/2, con lo scopo di essere quasi equivalente ad una connessione TCP ma con latenza ridotta. Utilizza UDP per le sue comunicazioni, e permette di gestire in modo più efficiente la perdita di pacchetti e la congestione della rete. Permette inoltre di gestire in modo più efficiente la sicurezza, utilizzando TLS per la cifratura e l'autenticazione, ma spostandone lo scambio di chiavi all'interno dell'\emph{handshake} iniziale, rendendo più veloce la connessione.
+
+\subsection{Programmi utilizzati}
+
+\subsubsection{VLAN}
+
+Utilizzando lo \emph{switch HP ProCurve} fornitomi ho potuto sperimentare la configurazione di VLAN. Tramite questa tecnica è possibile suddividere una rete fisica in più reti logiche, che possono essere gestite in modo indipendente. Questo permette di ridurre in primo luogo il numero di apparati fisici necessari, e in secondo luogo di applicare delle regole di sicurezza più specifiche, in modo da limitare l'accesso sulla base della rete a cui si è connessi.
+
+Tutto questo avviene a livello due dello stack ISO/OSI, tramite l'assegnazione di un \emph{tag} VLAN ad ogni pacchetto, secondo lo standard 802.1Q, che viene utilizzato dagli \emph{switch} per instradare il traffico verso la rete corretta. Il \emph{tag} del pacchetto segue la configurazione data ad ogni porta dello \emph{switch}: queste vengono dette \emph{tagged} (o \emph{trunk}) se sono in grado di gestire più VLAN, oppure \emph{untagged} (o \emph{access}) se accettano solo pacchetti della VLAN corretta, venendo quindi utilizzate per collegare gli \emph{host} finali, a differenze delle prime che permettono di collegare gli \emph{switch} o altri apparati come \emph{server}, \emph{access point} e \emph{firewall} tra loro.
+
+\subsubsection{Wireshark}
+
+\emph{Wireshark} è uno dei principali programmi utilizzati per l'analisi del traffico di rete. Permette di catturare tutti i pacchetti che transitano su una rete e visualizzarne i contenuti. Si possono filtrare i pacchetti in base a diversi criteri, come ad esempio il protocollo utilizzato, l'indirizzo IP sorgente o destinazione, la porta sorgente o destinazione, e tanti altri filtri. Inoltre è possibile analizzare il traffico in tempo reale, e di visualizzare statistiche sulle comunicazioni, come ad esempio il numero di pacchetti per protocollo o per indirizzo IP, il numero di \emph{byte} per protocollo e molti altri.
+
+Durante il periodo di stage sono stati segnalati alcuni problemi legati alla ricezione delle chiamate dai telefoni \emph{VoIP} aziendali e utilizzando la funzionalità di seguire flussi di connessioni in \emph{Wireshark} ci ha permesso di capire chiaramente in quale fase del \emph{setup} della chiamata si presentava il problema. Questo mostra la versatilità dello strumento, non limitata alle solo connessioni \emph{web} ma ogni tipo di comunicazione che avviene su una rete. È possibile inoltre sfruttare questo programma per analizzare traffico che passa attraverso interfacce USB.
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.6\linewidth]{images/loghi/wireshark.png}
+    \caption{Logo di Wireshark}
+    \label{fig:wireshark-logo}
+\end{figure}
+
+\subsubsection{Nmap}
+
+Nmap, \emph{Network Mapper}, è uno strumento \emph{open-source} utilizzato per effettuare scansioni e analizzare le reti. È uno strumento potente che consente di esaminare le reti e individuare dispositivi, porte aperte, servizi in esecuzione e altre informazioni rilevanti.
+
+Durante il mio stage mi è stato presentato come uno degli strumenti di base che possono tornare utili in varie occasioni, vista la sua versatilità. Ho avuto modo di utilizzarlo per verificare le configurazioni che definivo sul \emph{RouterBoard Mikrotik} e sul \emph{firewall} di \emph{Watchguard}, sia di test che alcune in produzione per chiarire perché alcuni dispositivi riuscissero a raggiungere altri in reti diverse.
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.6\linewidth]{images/loghi/nmap.png}
+    \caption{Logo di Nmap}
+    \label{fig:nmap-logo}
+\end{figure}
+
+\subsubsection{PRTG Monitor}
+
+Come strumento di monitoraggio dei vari dispositivi e servizi dislocati per tutta la rete aziendale, in Wintech viene utilizzato \emph{PRTG Monitor}, prodotto da PAESSLER. Questo programma permette di catalogare e monitorare ogni elemento dell'infrastruttura, dai server ai servizi, dalle stampanti ai dispositivi di rete, e di visualizzare in tempo reale lo stato di ogni elemento. Permette di impostare delle soglie di allarme, in modo da essere avvisati in caso di problemi, e di visualizzare statistiche sulle prestazioni di ogni elemento. Permette inoltre di creare delle mappe di rete, che mostrano la topologia della rete e lo stato di ogni elemento, e di creare dei \emph{report} che mostrano le statistiche di un periodo di tempo.
+
+Per la gestione dell'NDR sono stati aggiunti i dispositivi dove sono state installate le sonde e configurati i sensori per monitorare lo stato dei NUC fisici e del servizio di rilevazione del traffico. In alcuni casi i sensori interni al programma non erano sufficienti e quindi ho aiutato a costruire dei sensori personalizzati, creando degli \emph{script} in \emph{Python} e \emph{Powershell} che andavano a interrogare i dispositivi e a restituire i dati richiesti, tramite file strutturati in XML per dare modo ai sensori di segnalare i dati correttamente e le violazioni delle soglie impostate.
+
+Ad esempio, uno \emph{script} a cui ho lavorato per questo programma si occupava di monitorare il corretto aggiornamento del tecnico reperibile nel sistema di \emph{ticketing} aziendale. Scritto in linguaggio \emph{PowerShell}, interrogava il sistema e recuperava tramite \emph{API REST} lo stato del tecnico reperibile e andava a verificare che questo fosse aggiornato correttamente, segnalando un errore nel caso in cui non fosse presente o presentasse un errore.
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.5\linewidth]{images/loghi/prtg-monitor.png}
+    \caption{Logo di PRTG Monitor}
+    \label{fig:prtg-logo}
+\end{figure}
+
+\subsubsection{Mikrotik RouterOS}
+
+Il \emph{RouterOS} è un sistema operativo basato su \emph{Linux} sviluppato da \emph{Mikrotik} per i suoi apparati di rete. Questo sistema operativo permette di configurare in modo semplice e veloce tutti i dispositivi di rete, tramite un'interfaccia grafica o tramite un terminale. Permette di configurare e adoperare molti protocolli di rete. Inoltre è possibile di configurare un \emph{firewall} per proteggere la rete, un \emph{server} DHCP e di configurare un \emph{hotspot} per fornire accesso alla rete a chiunque si connetta.
+
+Ho utilizzato questo sistema per costruire una piccola rete e collegare vari dispositivi dove effettuare dei test e per sperimentare le configurazioni di base di un \emph{router} e di uno \emph{switch}.
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.6\linewidth]{images/loghi/mikrotik.png}
+    \caption{Logo di Mikrotik}
+    \label{fig:mikrotik-logo}
+\end{figure}
+
+\subsubsection{Watchguard System Manager}
+
+Come introduzione per capire il funzionamento dei \emph{firewall} ho utilizzato un \emph{Firebox} di \emph{Watchguard}, fornito da Wintech, e il software \emph{Watchguard System Manager}, che permette di configurarlo e di monitorarne lo stato. Permette di configurare le regole di NAT e \emph{allow/deny}, configurare le VPN, cosa che ho fatto sia nelle mie configurazioni di test che in alcune configurazioni di clienti in produzione.
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.6\linewidth]{images/loghi/watchguard.png}
+    \caption{Logo di Watchguard}
+    \label{fig:watchguard-logo}
+\end{figure}
+
+Per avere una panoramica completa sui vari prodotti presenti e offerti sul mercato, ho potuto vedere anche altri \emph{firewall} utilizzati in azienda, come ad esempio quelli di \emph{Palo Alto}, in modo da capire come questi si differenziano tra loro.
+
+\subsubsection{Putty}
+
+PuTTY è un \emph{client open-source} per collegamenti SSH, telnet e seriali, sviluppato originariamente per la piattaforma \emph{Windows}, che permette di superare le limitazioni del terminale di Microsoft. Permette di collegarsi a un \emph{host} e di gestire la connessione tramite un'interfaccia grafica. Tramite questo programma mi sono potuto collegare con un cavo RS-232 ai vari dispositivi di rete con un collegamento seriale, agendo direttamente sul sistema operativo e configurando i vari servizi.
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.5\linewidth]{images/loghi/putty.png}
+    \caption{Logo di Putty}
+    \label{fig:putty-logo}
+\end{figure}
+
+\subsubsection{cURL}
+
+cURL è un programma \emph{open-source} che permette di effettuare richieste di vari protocolli, configurando ogni aspetto della richiesta, come ad esempio il metodo, l'\emph{header}, i parametri, e molti altri. Permette inoltre di salvare la risposta in un \emph{file}, di seguire i \emph{redirect}, e di impostare un \emph{timeout}. Permette inoltre di effettuare richieste in modo parallelo o in modo ricorsivo, andando a seguire i \emph{link} presenti nella risposta. Un suo grande vantaggio nei test è che non utilizza \emph{cache}, che a volte falsifica i risultati portando a falsi negativi o positivi
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.5\linewidth]{images/loghi/curl.png}
+    \caption{Logo di cURL}
+    \label{fig:curl-logo}
+\end{figure}
+
+\subsubsection{Notepad++}
+
+Per la gestione dei \emph{file} di testo, ha sostituito il classico \emph{Blocco Note} di \emph{Windows} con il programma \emph{open-source Notepad++} . Permette di gestire più \emph{file} contemporaneamente, di evidenziare la sintassi di molti linguaggi di programmazione, e di muovermi velocemente all'interno di grossi file di \emph{log}.
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[scale=0.3]{images/loghi/notepadpp.png}
+    \caption{Logo di Notepad++}
+    \label{fig:notepadpp-logo}
+\end{figure}
